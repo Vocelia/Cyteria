@@ -1,6 +1,6 @@
 CXX = gcc
 OUTDIR = build
-CXXFLAGS = -Wall -O3 -o
+CXXFLAGS = -x c++ -Wall -O3 -o
 INCLUDE = -Isrc/include
 LDFLAGS = 
 ifeq ($(OS), Windows_NT)

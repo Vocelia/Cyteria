@@ -2,7 +2,7 @@ CXX = gcc
 OUTDIR = build
 CXXFLAGS = -x c++ -Wall -O3 -o
 INCLUDE = -Isrc/include
-LDFLAGS = 
+LDFLAGS = -lm
 ifeq ($(OS), Windows_NT)
 	TARGET = main.exe
 else

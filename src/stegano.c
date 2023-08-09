@@ -43,8 +43,23 @@ static void writeBitsToContainer(stegano_t* info_ptr, unsigned char* data, uint3
     } *(info_ptr) = info;
 }
 
+static void writeBitsToContainers(stegano_t* info_ptr, unsigned char* data, char* container, uint32_t margin) {
+    bool bit;
+    stegano_t info = *(info_ptr);
+    uint32_t j = 0, bitcount = margin, k = info.cur+(margin-1);
+    for (; info.cur<info.offset; info.cur++) {
+        bitcount--;
+        bit = data[info.cur] >> 0 & 1; //gets the LSBs of data
+        if (bit) container[j] += pow(2, bitcount); //addition by 2^index
+        if (info.cur == k) { //container shifts into the next member each margin cycle
+			j++; k += margin; bitcount = margin;
+		}
+    } *(info_ptr) = info;
+}
+
 /* Reads from the Least Significant Bit (LSB) of data, writing to container until reaching offset
-If an alpha channel exists, alpha will be removed and re-attached later on */
+If an alpha channel exists, alpha will be removed and re-attached later on
+Given a margin, container is used as an array split with the specified margin. */
 static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
     stegano_t info = *(info_ptr);
     if (info.alpha) {
@@ -55,6 +70,19 @@ static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
             attach_alpha(info, excluded_data);
         } free(excluded_data);
     } else writeBitsToContainer(info_ptr, info.data, container);
+    *(info_ptr) = info;
+}
+
+static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin) {
+    stegano_t info = *(info_ptr);
+    if (info.alpha) {
+        unsigned char* excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
+        if (excluded_data != NULL) {
+            extract_alpha(info, excluded_data);
+            writeBitsToContainers(info_ptr, excluded_data, container, margin);
+            attach_alpha(info, excluded_data);
+        } free(excluded_data);
+    } else writeBitsToContainers(info_ptr, info.data, container, margin);
     *(info_ptr) = info;
 }
 

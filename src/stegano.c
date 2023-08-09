@@ -8,11 +8,21 @@
 #include "include/stegano.h"
 
 static const char* SIG = "CYT"; //signature
+static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin);
 
 /* Checks the requirements by msg in reference to data
 Returns a positive number if data is enough to satisfy msg */
 static uint32_t check_limit(stegano_t info) {
 	return (info.alpha) ? ((info.data_len/4)*3)-((info.msg_len*8)+65) : info.data_len-((info.msg_len*8)+65); //65 bits for the header
+}
+
+//Checks for the validaty of the data stream
+static bool check_sig(stegano_t info) {
+    info.cur = 0;
+    info.offset = 24; //3*8 bits
+    char* intro = (char*)malloc(3*sizeof(char));
+    readFromLSBs(&info, intro, 8);
+    return (strcmp(SIG, intro) == 0) ? true : false;
 }
 
 //Extracts alpha values from data and copies only RGB values to buffer

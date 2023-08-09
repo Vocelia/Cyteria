@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "include/stegano.h"
+
 static const char* SIG = "CYT"; //signature
 
 /* Checks the requirements by msg in reference to data
@@ -37,7 +39,7 @@ static void writeBitsToContainer(stegano_t* info_ptr, unsigned char* data, uint3
     stegano_t info = *(info_ptr);
     for (; info.cur<info.offset; info.cur++) {
         bit = data[info.cur] >> 0 & 1; //gets the LSBs of data
-        if (bit) *(container) += pow(2, ((offset-1) - i)); //addition by 2^index
+        if (bit) *(container) += pow(2, ((info.offset-1) - info.cur)); //addition by 2^index
     } *(info_ptr) = info;
 }
 
@@ -49,10 +51,10 @@ static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
         unsigned char* excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
         if (excluded_data != NULL) {
             extract_alpha(info, excluded_data);
-            writeBitsToContainer(info, excluded_data, container);
+            writeBitsToContainer(info_ptr, excluded_data, container);
             attach_alpha(info, excluded_data);
         } free(excluded_data);
-    } else writeBitsToContainer(info, info.data, container);
+    } else writeBitsToContainer(info_ptr, info.data, container);
     *(info_ptr) = info;
 }
 
@@ -60,8 +62,9 @@ static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
 Given a margin, msg is used as an array split with the specified margin. */
 static void writeToLSB(stegano_t* info_ptr, const char bits) {
 	bool bit;
+    unsigned char* cur_data;
+    unsigned char* excluded_data;
     stegano_t info = *(info_ptr);
-    unsigned char* cur_data, excluded_data;
     if (info.alpha) {
         excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
         if (excluded_data != NULL) {
@@ -71,7 +74,7 @@ static void writeToLSB(stegano_t* info_ptr, const char bits) {
     } else cur_data = info.data;
 	for (; info.cur<info.offset; info.cur++) {
 		bit = bits >> ((info.offset-1) - info.cur) & 1; //gets the LSB of bits
-		if ((cur_data[info.cur]%2) == 0) cur_data[i] += (bit) ? 1 : 0;
+		if ((cur_data[info.cur]%2) == 0) cur_data[info.cur] += (bit) ? 1 : 0;
 		else cur_data[info.cur] -= (bit) ? 0 : 1;
 	}
     if (info.alpha) {
@@ -82,8 +85,9 @@ static void writeToLSB(stegano_t* info_ptr, const char bits) {
 
 static void writeToLSBs(stegano_t* info_ptr, uint32_t margin) {
 	bool bit;
+    unsigned char* cur_data;
+    unsigned char* excluded_data;
     stegano_t info = *(info_ptr);
-    unsigned char* cur_data, excluded_data;
 	uint32_t j = 0, bitcount = margin, k = info.cur+(margin-1);
     if (info.alpha) {
         excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
@@ -117,17 +121,17 @@ bool hide(uint8_t system, uint8_t spacing, unsigned char* data, const char* msg,
     info.alpha = alpha;
     info.msg_len = strlen(msg);
     info.data_len = strlen((char*)data);
-    if (check_limit(info.data_len, info.msg_len, info.alpha)>0) {
+    if (check_limit(info)>0) {
         //Header: signature, system, spacing, length
         info.msg = SIG;
         info.offset += 24;
         writeToLSBs(&info, 8);
         info.offset += 3;
-        writeToLSB(info, system);
+        writeToLSB(&info, system);
         info.offset += 6;
-        writeToLSB(info, spacing);
+        writeToLSB(&info, spacing);
         info.offset += 32;
-        writeToLSB(info, info.msg_len);
+        writeToLSB(&info, info.msg_len);
         //Body: message
         info.msg = msg;
         info.offset += info.msg_len*8;

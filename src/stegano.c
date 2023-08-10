@@ -76,10 +76,10 @@ static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
         unsigned char* excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
         if (excluded_data != NULL) {
             extract_alpha(info, excluded_data);
-            writeBitsToContainer(info_ptr, excluded_data, container);
+            writeBitsToContainer(&info, excluded_data, container);
             attach_alpha(info, excluded_data);
         } free(excluded_data);
-    } else writeBitsToContainer(info_ptr, info.data, container);
+    } else writeBitsToContainer(&info, info.data, container);
     *(info_ptr) = info;
 }
 
@@ -89,10 +89,10 @@ static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin) 
         unsigned char* excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
         if (excluded_data != NULL) {
             extract_alpha(info, excluded_data);
-            writeBitsToContainers(info_ptr, excluded_data, container, margin);
+            writeBitsToContainers(&info, excluded_data, container, margin);
             attach_alpha(info, excluded_data);
         } free(excluded_data);
-    } else writeBitsToContainers(info_ptr, info.data, container, margin);
+    } else writeBitsToContainers(&info, info.data, container, margin);
     *(info_ptr) = info;
 }
 
@@ -107,9 +107,9 @@ static void writeToLSB(stegano_t* info_ptr, const char bits) {
         excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
         if (excluded_data != NULL) {
             extract_alpha(info, excluded_data);
-            cur_data = excluded_data;
+            cur_data = excluded_data; /* current data variable */
         }
-    } else cur_data = info.data;
+    } else cur_data = info.data; /* current data variable */
 	for (; info.cur<info.offset; info.cur++) {
 		bit = bits >> ((info.offset-1) - info.cur) & 1; //gets the LSB of bits
 		if ((cur_data[info.cur]%2) == 0) cur_data[info.cur] += (bit) ? 1 : 0;
@@ -131,9 +131,9 @@ static void writeToLSBs(stegano_t* info_ptr, uint32_t margin) {
         excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
         if (excluded_data != NULL) {
             extract_alpha(info, excluded_data);
-            cur_data = excluded_data;
+            cur_data = excluded_data; /* current data variable */
         }
-    } else cur_data = info.data;
+    } else cur_data = info.data; /* current data variable */
 	for (; info.cur<info.offset; info.cur++) {
 		bitcount--;
 		bit = info.msg[j] >> bitcount & 1; //gets the LSB of bits[j]
@@ -160,7 +160,7 @@ bool hide(uint8_t system, uint8_t spacing, unsigned char* data, const char* msg,
     info.msg_len = strlen(msg);
     info.data_len = strlen((char*)data);
     if (check_limit(info)>0) {
-        //Header: signature, system, spacing, length
+        /* Header: signature, system, spacing, length */
         info.msg = SIG;
         info.offset += 24;
         writeToLSBs(&info, 8);
@@ -170,10 +170,36 @@ bool hide(uint8_t system, uint8_t spacing, unsigned char* data, const char* msg,
         writeToLSB(&info, spacing);
         info.offset += 32;
         writeToLSB(&info, info.msg_len);
-        //Body: message
+        /* Body: message */
         info.msg = msg;
         info.offset += info.msg_len*8;
         writeToLSBs(&info, 8);
     } else return false; 
+    return true;
+}
+
+/* Reveals a message (msg) within data through its Least Significant Bit (LSB)
+If an alpha channel exists, its values are extracted and re-attached later on */
+bool reveal(stegano_header_t* header, unsigned char* data, char* buffer, bool alpha) {
+    stegano_t info;
+    info.data = data;
+    info.alpha = alpha;
+    info.data_len = strlen((char*)data);
+    stegano_header_t head = *(header);
+    if (check_sig(info)) {
+    	/* SIG is skipped */
+    	info.cur = 24;
+    	info.offset = 27;
+        /* Header: system, spacing, length */
+        readFromLSB(&info, (uint32_t*)&head.system);
+        info.offset += 6;
+        readFromLSB(&info, (uint32_t*)&head.spacing);
+        info.offset += 32;
+        readFromLSB(&info, &head.len);
+        /* Body: message */
+        info.offset += head.len*8;
+        readFromLSBs(&info, buffer, 8);
+        *(header) = head;
+    } else return false;
     return true;
 }

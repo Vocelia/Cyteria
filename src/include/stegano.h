@@ -14,9 +14,9 @@ typedef struct {
 } stegano_t;
 
 typedef struct {
-    uint32_t* len;
-    uint8_t* system;
-    uint8_t* spacing;
+    uint32_t len;
+    uint8_t system;
+    uint8_t spacing;
 } stegano_header_t;
 
 bool hide(uint8_t system, uint8_t spacing, unsigned char* data, const char* msg, bool alpha);

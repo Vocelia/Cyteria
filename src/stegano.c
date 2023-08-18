@@ -12,8 +12,8 @@ static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin);
 
 /* Checks the requirements by msg in reference to data
 Returns a positive number if data is enough to satisfy msg */
-static uint32_t check_limit(stegano_t info) {
-	return (info.alpha) ? ((info.data_len/4)*3)-((info.msg_len*8)+65) : info.data_len-((info.msg_len*8)+65); //65 bits for the header
+static int32_t check_limit(stegano_t info) {
+	return info.data_len-((info.msg_len*8)+65); //65 bits for the header
 }
 
 //Checks for the validaty of the data stream
@@ -25,41 +25,29 @@ static bool check_sig(stegano_t info) {
     return (strcmp(SIG, intro) == 0) ? true : false;
 }
 
-static void writeBitsToContainer(stegano_t* info_ptr, unsigned char* data, uint32_t* container) {
+/* Reads from the Least Significant Bit (LSB) of data, writing to container until reaching offset
+Given a margin, container is used as an array split with the specified margin. */
+static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
     bool bit;
     stegano_t info = *(info_ptr);
     for (; info.cur<info.offset; info.cur++) {
-        bit = data[info.cur] >> 0 & 1; //gets the LSBs of data
+        bit = info.data[info.cur] >> 0 & 1; //gets the LSBs of data
         if (bit) *(container) += pow(2, ((info.offset-1) - info.cur)); //addition by 2^index
     } *(info_ptr) = info;
 }
 
-static void writeBitsToContainers(stegano_t* info_ptr, unsigned char* data, char* container, uint32_t margin) {
+static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin) {
     bool bit;
     stegano_t info = *(info_ptr);
     uint32_t j = 0, bitcount = margin, k = info.cur+(margin-1);
     for (; info.cur<info.offset; info.cur++) {
         bitcount--;
-        bit = data[info.cur] >> 0 & 1; //gets the LSBs of data
+        bit = info.data[info.cur] >> 0 & 1; //gets the LSBs of data
         if (bit) container[j] += pow(2, bitcount); //addition by 2^index
         if (info.cur == k) { //container shifts into the next member each margin cycle
 			j++; k += margin; bitcount = margin;
 		}
     } *(info_ptr) = info;
-}
-
-/* Reads from the Least Significant Bit (LSB) of data, writing to container until reaching offset
-Given a margin, container is used as an array split with the specified margin. */
-static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
-    stegano_t info = *(info_ptr);
-    writeBitsToContainer(&info, info.data, container);
-    *(info_ptr) = info;
-}
-
-static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin) {
-    stegano_t info = *(info_ptr);
-    writeBitsToContainers(&info, info.data, container, margin);
-    *(info_ptr) = info;
 }
 
 /* Writes bits to the Least Significant Bit (LSB) of data until it reaches the specified offset

@@ -25,25 +25,6 @@ static bool check_sig(stegano_t info) {
     return (strcmp(SIG, intro) == 0) ? true : false;
 }
 
-//Extracts alpha values from data and copies only RGB values to buffer
-static void extract_alpha(stegano_t info, unsigned char* buffer) {
-	uint32_t i = 0, k = 3;
-	for (; i<info.data_len; i++) {
-		if (i != k) strncat((char*)buffer, (char*)&info.data[i], 1);
-		else k += 4;
-	}
-}
-
-//Re-attaches alpha values back by copying RGB from excluded_data to data
-static void attach_alpha(stegano_t info, unsigned char* excluded_data) {
-	uint32_t i = 0, j = 0, k = 3;
-	for (; i<info.data_len; i++) {
-		if (i != k) info.data[i] = excluded_data[j];
-		else { j--; k += 4; }
-		j++;
-	}
-}
-
 static void writeBitsToContainer(stegano_t* info_ptr, unsigned char* data, uint32_t* container) {
     bool bit;
     stegano_t info = *(info_ptr);
@@ -72,27 +53,13 @@ If an alpha channel exists, alpha will be removed and re-attached later on
 Given a margin, container is used as an array split with the specified margin. */
 static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
     stegano_t info = *(info_ptr);
-    if (info.alpha) {
-        unsigned char* excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
-        if (excluded_data != NULL) {
-            extract_alpha(info, excluded_data);
-            writeBitsToContainer(&info, excluded_data, container);
-            attach_alpha(info, excluded_data);
-        } free(excluded_data);
-    } else writeBitsToContainer(&info, info.data, container);
+    writeBitsToContainer(&info, info.data, container);
     *(info_ptr) = info;
 }
 
 static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin) {
     stegano_t info = *(info_ptr);
-    if (info.alpha) {
-        unsigned char* excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
-        if (excluded_data != NULL) {
-            extract_alpha(info, excluded_data);
-            writeBitsToContainers(&info, excluded_data, container, margin);
-            attach_alpha(info, excluded_data);
-        } free(excluded_data);
-    } else writeBitsToContainers(&info, info.data, container, margin);
+    writeBitsToContainers(&info, info.data, container, margin);
     *(info_ptr) = info;
 }
 
@@ -100,53 +67,27 @@ static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin) 
 Given a margin, msg is used as an array split with the specified margin. */
 static void writeToLSB(stegano_t* info_ptr, const char bits) {
 	bool bit;
-    unsigned char* cur_data;
-    unsigned char* excluded_data;
     stegano_t info = *(info_ptr);
-    if (info.alpha) {
-        excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
-        if (excluded_data != NULL) {
-            extract_alpha(info, excluded_data);
-            cur_data = excluded_data; /* current data variable */
-        }
-    } else cur_data = info.data; /* current data variable */
 	for (; info.cur<info.offset; info.cur++) {
 		bit = bits >> ((info.offset-1) - info.cur) & 1; //gets the LSB of bits
-		if ((cur_data[info.cur]%2) == 0) cur_data[info.cur] += (bit) ? 1 : 0;
-		else cur_data[info.cur] -= (bit) ? 0 : 1;
-	}
-    if (info.alpha) {
-        attach_alpha(info, excluded_data);
-        free(excluded_data);
-    } *(info_ptr) = info;
+		if ((info.data[info.cur]%2) == 0) info.data[info.cur] += (bit) ? 1 : 0;
+		else info.data[info.cur] -= (bit) ? 0 : 1;
+	} *(info_ptr) = info;
 }
 
 static void writeToLSBs(stegano_t* info_ptr, uint32_t margin) {
 	bool bit;
-    unsigned char* cur_data;
-    unsigned char* excluded_data;
     stegano_t info = *(info_ptr);
 	uint32_t j = 0, bitcount = margin, k = info.cur+(margin-1);
-    if (info.alpha) {
-        excluded_data = (unsigned char*)malloc(info.data_len*sizeof(unsigned char));
-        if (excluded_data != NULL) {
-            extract_alpha(info, excluded_data);
-            cur_data = excluded_data; /* current data variable */
-        }
-    } else cur_data = info.data; /* current data variable */
 	for (; info.cur<info.offset; info.cur++) {
 		bitcount--;
 		bit = info.msg[j] >> bitcount & 1; //gets the LSB of bits[j]
-		if ((cur_data[info.cur]%2) == 0) cur_data[info.cur] += (bit) ? 1 : 0;
-		else cur_data[info.cur] -= (bit) ? 0 : 1;
+		if ((info.data[info.cur]%2) == 0) info.data[info.cur] += (bit) ? 1 : 0;
+		else info.data[info.cur] -= (bit) ? 0 : 1;
 		if (info.cur == k) { //msg shifts into the next member each margin cycle
 			j++; k += margin; bitcount = margin;
 		}
-	}
-    if (info.alpha) {
-        attach_alpha(info, excluded_data);
-        free(excluded_data);
-    } *(info_ptr) = info;
+	} *(info_ptr) = info;
 }
     
 /* Hides a message (msg) within data through its Least Significant Bit (LSB)

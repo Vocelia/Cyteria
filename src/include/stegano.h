@@ -4,7 +4,6 @@
 #include <stdbool.h>
 
 typedef struct {
-    bool alpha;
     uint32_t cur; //cursor
     uint32_t offset;
     uint32_t msg_len;
@@ -19,5 +18,5 @@ typedef struct {
     uint8_t spacing;
 } stegano_header_t;
 
-bool hide(uint8_t system, uint8_t spacing, unsigned char* data, const char* msg, bool alpha);
-bool reveal(stegano_header_t* head, unsigned char* data, char* buffer, bool alpha);
+bool hide(stegano_t* info_ptr, uint8_t system, uint8_t spacing);
+bool reveal(stegano_header_t* head, stegano_t* info_ptr, char* buffer);

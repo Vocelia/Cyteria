@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "include/stegano.h"
+#include "src/include/stegano.h"
 
 static const char* SIG = "CYT"; //signature
 static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin);
@@ -16,13 +16,15 @@ static int32_t check_limit(stegano_t info) {
 	return info.data_len-((info.msg_len*8)+65); //65 bits for the header
 }
 
-//Checks for the validaty of the data stream
+/* Checks for the validaty of the data stream */
 static bool check_sig(stegano_t info) {
     info.cur = 0;
     info.offset = 24; //3*8 bits
-    char* intro = (char*)malloc(3*sizeof(char));
+    char* intro = (char*)malloc(3*8);
     readFromLSBs(&info, intro, 8);
-    return (strcmp(SIG, intro) == 0) ? true : false;
+    bool rtn = (strcmp(SIG, intro) == 0) ? true : false;
+    free(intro);
+    return rtn;
 }
 
 /* Reads from the Least Significant Bit (LSB) of data, writing to container until reaching offset
@@ -81,7 +83,7 @@ static void writeToLSBs(stegano_t* info_ptr, uint32_t margin) {
 Requirements: info.data, info.msg, info.msg_len, info.data_len */
 bool hide(stegano_t* info_ptr, uint8_t system, uint8_t spacing) {
     stegano_t info = *(info_ptr);
-    char* msg = info.msg; /* msg pointer as info.msg will be overwritten with SIG */
+    const char* msg = info.msg; /* msg pointer as info.msg will be overwritten with SIG */
     if (check_limit(info)>0) {
         /* Header: signature, system, spacing, length */
         info.cur = 0;
@@ -106,7 +108,7 @@ bool hide(stegano_t* info_ptr, uint8_t system, uint8_t spacing) {
 
 /* Reveals a message (msg) within data through its Least Significant Bit (LSB)
 Requirements: info.data, info.msg (buffer), info.msg_len, info.data_len */
-bool reveal(stegano_header_t* header, stegano_t* info_ptr) {
+bool reveal(stegano_header_t* header, stegano_t* info_ptr, char* buffer) {
     stegano_t info = *(info_ptr);
     stegano_header_t head = *(header);
     if (check_sig(info)) {
@@ -121,7 +123,7 @@ bool reveal(stegano_header_t* header, stegano_t* info_ptr) {
         readFromLSB(&info, &head.len);
         /* Body: message */
         info.offset += head.len*8;
-        readFromLSBs(&info, info.msg, 8);
+        readFromLSBs(&info, buffer, 8);
         *(header) = head;
         *(info_ptr) = info;
     } else return false;

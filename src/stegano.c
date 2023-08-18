@@ -49,7 +49,6 @@ static void writeBitsToContainers(stegano_t* info_ptr, unsigned char* data, char
 }
 
 /* Reads from the Least Significant Bit (LSB) of data, writing to container until reaching offset
-If an alpha channel exists, alpha will be removed and re-attached later on
 Given a margin, container is used as an array split with the specified margin. */
 static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
     stegano_t info = *(info_ptr);
@@ -91,17 +90,14 @@ static void writeToLSBs(stegano_t* info_ptr, uint32_t margin) {
 }
     
 /* Hides a message (msg) within data through its Least Significant Bit (LSB)
-If an alpha channel exists, its values are extracted and re-attached later on */
-bool hide(uint8_t system, uint8_t spacing, unsigned char* data, const char* msg, bool alpha) {
-    stegano_t info;
-    info.cur = 0;
-    info.offset = 0;
-    info.data = data;
-    info.alpha = alpha;
-    info.msg_len = strlen(msg);
-    info.data_len = strlen((char*)data);
+Requirements: info.data, info.msg, info.msg_len, info.data_len */
+bool hide(stegano_t* info_ptr, uint8_t system, uint8_t spacing) {
+    stegano_t info = *(info_ptr);
+    char* msg = info.msg; /* msg pointer as info.msg will be overwritten with SIG */
     if (check_limit(info)>0) {
         /* Header: signature, system, spacing, length */
+        info.cur = 0;
+        info.offset = 0;
         info.msg = SIG;
         info.offset += 24;
         writeToLSBs(&info, 8);
@@ -115,17 +111,15 @@ bool hide(uint8_t system, uint8_t spacing, unsigned char* data, const char* msg,
         info.msg = msg;
         info.offset += info.msg_len*8;
         writeToLSBs(&info, 8);
-    } else return false; 
+        *(info_ptr) = info;
+    } else return false;
     return true;
 }
 
 /* Reveals a message (msg) within data through its Least Significant Bit (LSB)
-If an alpha channel exists, its values are extracted and re-attached later on */
-bool reveal(stegano_header_t* header, unsigned char* data, char* buffer, bool alpha) {
-    stegano_t info;
-    info.data = data;
-    info.alpha = alpha;
-    info.data_len = strlen((char*)data);
+Requirements: info.data, info.msg (buffer), info.msg_len, info.data_len */
+bool reveal(stegano_header_t* header, stegano_t* info_ptr) {
+    stegano_t info = *(info_ptr);
     stegano_header_t head = *(header);
     if (check_sig(info)) {
         /* SIG is skipped */
@@ -139,8 +133,9 @@ bool reveal(stegano_header_t* header, unsigned char* data, char* buffer, bool al
         readFromLSB(&info, &head.len);
         /* Body: message */
         info.offset += head.len*8;
-        readFromLSBs(&info, buffer, 8);
+        readFromLSBs(&info, info.msg, 8);
         *(header) = head;
+        *(info_ptr) = info;
     } else return false;
     return true;
 }

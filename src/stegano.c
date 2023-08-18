@@ -187,9 +187,9 @@ bool reveal(stegano_header_t* header, unsigned char* data, char* buffer, bool al
     info.data_len = strlen((char*)data);
     stegano_header_t head = *(header);
     if (check_sig(info)) {
-    	/* SIG is skipped */
-    	info.cur = 24;
-    	info.offset = 27;
+        /* SIG is skipped */
+        info.cur = 24;
+        info.offset = 27;
         /* Header: system, spacing, length */
         readFromLSB(&info, (uint32_t*)&head.system);
         info.offset += 6;

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "src/include/stegano.h"
+#include "include/stegano.h"
 
 static const char* SIG = "CYT"; //signature
 static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin);
@@ -13,14 +13,14 @@ static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin);
 /* Checks the requirements by msg in reference to data
 Returns a positive number if data is enough to satisfy msg */
 static int32_t check_limit(stegano_t info) {
-	return info.data_len-((info.msg_len*8)+65); //65 bits for the header
+	return info.data_len-((info.msg_len*8)+65); /*65 bits for the header*/
 }
 
 /* Checks for the validaty of the data stream */
 static bool check_sig(stegano_t info) {
     info.cur = 0;
-    info.offset = 24; //3*8 bits
-    char* intro = (char*)malloc(3*8);
+    info.offset = 24; /* 3*8 bits */
+    char* intro = (char*)malloc(3*sizeof(char));
     readFromLSBs(&info, intro, 8);
     bool rtn = (strcmp(SIG, intro) == 0) ? true : false;
     free(intro);
@@ -32,6 +32,7 @@ Given a margin, container is used as an array split with the specified margin. *
 static void readFromLSB(stegano_t* info_ptr, uint32_t* container) {
     bool bit;
     stegano_t info = *(info_ptr);
+    *(container) = 0; /* Fallback for unallocated container */ 
     for (; info.cur<info.offset; info.cur++) {
         bit = info.data[info.cur] >> 0 & 1; //gets the LSBs of data
         if (bit) *(container) += pow(2, ((info.offset-1) - info.cur)); //addition by 2^index

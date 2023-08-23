@@ -21,6 +21,7 @@ static bool check_sig(stegano_t info) {
     info.cur = 0;
     info.offset = 24; /* 3*8 bits */
     char* intro = (char*)malloc(3*sizeof(char));
+    memset(intro, 0, 3*8); /*Memory allocation for members*/
     readFromLSBs(&info, intro, 8);
     bool rtn = (strcmp(SIG, intro) == 0) ? true : false;
     free(intro);

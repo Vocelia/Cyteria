@@ -12,7 +12,7 @@ static void readFromLSBs(stegano_t* info_ptr, char* container, uint32_t margin);
 
 /* Checks the requirements by msg in reference to data
 Returns a positive number if data is enough to satisfy msg */
-static int32_t check_limit(stegano_t info) {
+int32_t check_limit(stegano_t info) {
 	return info.data_len-((info.msg_len*8)+65); /*65 bits for the header*/
 }
 

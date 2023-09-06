@@ -18,5 +18,6 @@ typedef struct {
     uint8_t spacing;
 } stegano_header_t;
 
+int32_t check_limit(stegano_t info);
 bool hide(stegano_t* info_ptr, uint8_t system, uint8_t spacing);
 bool reveal(stegano_header_t* head, stegano_t* info_ptr, char* buffer);

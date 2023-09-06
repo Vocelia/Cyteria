@@ -110,7 +110,7 @@ bool hide(stegano_t* info_ptr, uint8_t system, uint8_t spacing) {
 }
 
 /* Reveals a message (msg) within data through its Least Significant Bit (LSB)
-Requirements: info.data, info.msg (buffer), info.msg_len, info.data_len */
+Requirements: info.data, buffer, info.msg_len, info.data_len */
 bool reveal(stegano_header_t* header, stegano_t* info_ptr, char* buffer) {
     stegano_t info = *(info_ptr);
     stegano_header_t head = *(header);
@@ -126,6 +126,8 @@ bool reveal(stegano_header_t* header, stegano_t* info_ptr, char* buffer) {
         readFromLSB(&info, &head.len);
         /* Body: message */
         info.offset += head.len*8;
+        /*Resetting buffer memory block to avoid unexpected outcome*/
+        memset(buffer, 0, (head.len+1)*sizeof(char)); /*+1 to reserve for null terminator*/ 
         readFromLSBs(&info, buffer, 8);
         *(header) = head;
         *(info_ptr) = info;

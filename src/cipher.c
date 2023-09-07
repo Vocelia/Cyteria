@@ -8,6 +8,17 @@ static const char* SYS_0 = "abcdefghijklmnopqrstuvwxyz";
 static const char* SYS_1 = "abcd01efgh45ijkl23mnopqr89stuv6wxyz7";
 static const char* SYS_2 = "ab cd01ef?,gh45ij@#$kl23mn.%&opqr89stuv6wx!yz7*";
 
+/*Returns the state according to the index of the text array
+Note: The if-statements are arranged in a probabilistic way
+0 = special character or multi-byte character,
+1 = lowercase alphabetic character,
+2 = uppercase alphabetic character*/
+static uint8_t getState(char* text, uint32_t txti) {
+  if (islower(text[txti])) return 1;
+  else if (isupper(text[txti])) return 2;
+  else return 0;
+}
+
 //spacing range:
 //SYS_0 (0~25) | SYS_1 (0~35) | SYS_2 (0~46)
 //Any spacing out of boundary may lead to issues

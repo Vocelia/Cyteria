@@ -3,20 +3,23 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "include/cipher.h"
+
+/*Supported special characters*/
+static const char* SSC = " .,!?0123456789*$#@%&";
+
 /*All system variables the cipher depends on*/
 static const char* SYS_0 = "abcdefghijklmnopqrstuvwxyz";
 static const char* SYS_1 = "abcd01efgh45ijkl23mnopqr89stuv6wxyz7";
 static const char* SYS_2 = "ab cd01ef?,gh45ij@#$kl23mn.%&opqr89stuv6wx!yz7*";
 
 /*Returns the state according to the index of the text array
-Note: The if-statements are arranged in a probabilistic way
-0 = special character or multi-byte character,
-1 = lowercase alphabetic character,
-2 = uppercase alphabetic character*/
-static uint8_t getState(char* text, uint32_t txti) {
-  if (islower(text[txti])) return 1;
-  else if (isupper(text[txti])) return 2;
-  else return 0;
+Note: The if-statements are arranged in a probabilistic way*/
+static enum STATE getState(char* text, uint32_t txti) {
+  if (0x61<=text[txti] && text[txti]<=0x7a) return LW_CHAR;
+  else if (0x41<=text[txti] && text[txti]<=0x5a) return UP_CHAR;
+  else if (strchr(SSC, text[txti])!=NULL) return SS_CHAR;
+  else return FS_CHAR;
 }
 
 //spacing range:

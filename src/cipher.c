@@ -13,6 +13,12 @@ static const char* SYS_0 = "abcdefghijklmnopqrstuvwxyz";
 static const char* SYS_1 = "abcd01efgh45ijkl23mnopqr89stuv6wxyz7";
 static const char* SYS_2 = "ab cd01ef?,gh45ij@#$kl23mn.%&opqr89stuv6wx!yz7*";
 
+/*Gets SYS index through pointer arithmetic operation*/
+static uint32_t getSYSIndex(const char* ptr, const char* SYS, const char c) {
+  ptr = strchr(SYS, c);
+  return ptr - SYS;
+}
+
 /*Returns the state according to the index of the text array
 Note: The if-statements are arranged in a probabilistic way*/
 static enum STATE getState(char* text, uint32_t txti) {

@@ -13,9 +13,17 @@ static const char* SYS_0 = "abcdefghijklmnopqrstuvwxyz";
 static const char* SYS_1 = "abcd01efgh45ijkl23mnopqr89stuv6wxyz7";
 static const char* SYS_2 = "ab cd01ef?,gh45ij@#$kl23mn.%&opqr89stuv6wx!yz7*";
 
-/*Gets SYS index through pointer arithmetic operation*/
-static uint32_t getSYSIndex(const char* ptr, const char* SYS, const char c) {
-  ptr = strchr(SYS, c);
+/*Dumps the specified character to buffer and advances the buffer pointer */
+static void charDump(char* buffer, uint32_t* buff_len, const char _char) {
+  uint32_t buff_len_val = *(buff_len);
+  sprintf(buffer+buff_len_val, "%c", _char);
+  buff_len_val++; /*Advances the pointer to the next memory block*/
+  *(buff_len) = buff_len_val;
+}
+
+/*Returns SYS index through pointer arithmetic operation*/
+static uint32_t getSYSIndex(const char* ptr, const char* SYS, const char _char) {
+  ptr = strchr(SYS, _char);
   return ptr - SYS;
 }
 

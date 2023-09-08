@@ -6,7 +6,7 @@
 #include "include/cipher.h"
 
 /*Supported special characters*/
-static const char* SSC = " .,!?0123456789*$#@%&";
+static const char* SSC = " .,!?*$#@%&";
 
 /*All system variables the cipher depends on*/
 static const char* SYS_0 = "abcdefghijklmnopqrstuvwxyz";
@@ -32,6 +32,7 @@ Note: The if-statements are arranged in a probabilistic way*/
 static enum STATE getState(char* text, uint32_t txti) {
   if (0x61<=text[txti] && text[txti]<=0x7a) return LW_CHAR;
   else if (0x41<=text[txti] && text[txti]<=0x5a) return UP_CHAR;
+  else if (0x30<=text[txti] && text[txti]<=0x39) return INT_CHAR;
   else if (strchr(SSC, text[txti])!=NULL) return SS_CHAR;
   else return FS_CHAR;
 }

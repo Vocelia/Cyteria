@@ -18,12 +18,6 @@ static const uint8_t SYS_0_len = 26;
 static const uint8_t SYS_1_len = 36;
 static const uint8_t SYS_2_len = 47;
 
-/*Encodes a character by moving sysi pointer spacing times*/
-static uint32_t encode(const char* SYS, const uint8_t len, uint32_t sysi, uint8_t spacing) {
-  if (sysi+spacing<=(len-1)) return sysi+spacing;
-  else return sysi-(spacing+(len-6));
-}
-
 /*Dumps the specified character to buffer and advances the buffer pointer */
 static void charDump(char* buffer, uint32_t* buff_len, const char _char) {
   uint32_t buff_len_val = *(buff_len);
@@ -33,8 +27,8 @@ static void charDump(char* buffer, uint32_t* buff_len, const char _char) {
 }
 
 /*Returns SYS index through pointer arithmetic operation*/
-static uint32_t getSYSIndex(const char* ptr, const char* SYS, const char _char) {
-  ptr = strchr(SYS, _char);
+static uint32_t getSYSIndex(const char* SYS, const char _char) {
+  const char* ptr = strchr(SYS, _char);
   return ptr - SYS;
 }
 
@@ -46,6 +40,33 @@ static enum STATE getState(char* text, uint32_t txti) {
   else if (0x30<=text[txti] && text[txti]<=0x39) return INT_CHAR;
   else if (strchr(SSC, text[txti])!=NULL) return SS_CHAR;
   else return FS_CHAR;
+}
+
+/*Encodes a character according to the given case
+All cases:
+  0 = normal,
+  1 = uppercase,
+  2 = exception*/
+static void encode(cipher_t* cipher_ptr, uint8_t _case, const char* SYS, const uint8_t SYS_len) {
+  cipher_t cipher = *(cipher_ptr);
+  switch (_case) {
+    case 0:
+      cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]);
+      if (cipher.sysi+cipher.spacing<=(SYS_len-1)) cipher.sysi += cipher.spacing;
+      else cipher.sysi -= (cipher.spacing+(SYS_len-6));
+      charDump(cipher.buffer, &cipher.buff_len, SYS[cipher.sysi]);
+      break;
+    case 1:
+      cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]+0x20);
+      if (cipher.sysi+cipher.spacing<=(SYS_len-1)) cipher.sysi += cipher.spacing;
+      else cipher.sysi -= (cipher.spacing+(SYS_len-6));
+      charDump(cipher.buffer, &cipher.buff_len, toupper(SYS[cipher.sysi]));
+      break;
+    case 2:
+      cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]);
+      charDump(cipher.buffer, &cipher.buff_len, cipher.text[cipher.txti]);
+      break;
+  } *(cipher_ptr) = cipher;
 }
 
 //spacing range:

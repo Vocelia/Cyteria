@@ -13,6 +13,17 @@ static const char* SYS_0 = "abcdefghijklmnopqrstuvwxyz";
 static const char* SYS_1 = "abcd01efgh45ijkl23mnopqr89stuv6wxyz7";
 static const char* SYS_2 = "ab cd01ef?,gh45ij@#$kl23mn.%&opqr89stuv6wx!yz7*";
 
+/*Hardcoded SYS lengths to avoid unnecessary computations*/
+static const uint8_t SYS_0_len = 26;
+static const uint8_t SYS_1_len = 36;
+static const uint8_t SYS_2_len = 47;
+
+/*Encodes a character by moving sysi pointer spacing times*/
+static uint32_t encode(const char* SYS, const uint8_t len, uint32_t sysi, uint8_t spacing) {
+  if (sysi+spacing<=(len-1)) return sysi+spacing;
+  else return sysi-(spacing+(len-6));
+}
+
 /*Dumps the specified character to buffer and advances the buffer pointer */
 static void charDump(char* buffer, uint32_t* buff_len, const char _char) {
   uint32_t buff_len_val = *(buff_len);

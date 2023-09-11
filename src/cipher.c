@@ -44,24 +44,20 @@ static enum STATE getState(char* text, uint32_t txti) {
 
 /*Encodes a character according to the given case
 All cases:
-  0 = normal,
-  1 = uppercase,
-  2 = exception*/
+  0 = encode (normal),
+  1 = encode (uppercase),
+  2 = ignore*/
 static void encode(cipher_t* cipher_ptr, uint8_t _case, const char* SYS, const uint8_t SYS_len) {
   cipher_t cipher = *(cipher_ptr);
   switch (_case) {
     case 0:
       cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]);
-      /*Encodes character by moving pointers*/
-      if (cipher.sysi+cipher.spacing<=(SYS_len-1)) cipher.sysi += cipher.spacing;
-      else cipher.sysi -= (cipher.spacing+(SYS_len-6));
+      cipher.sysi = (cipher.spacing+cipher.sysi)%SYS_len;
       charDump(cipher.buffer, &cipher.buff_len, SYS[cipher.sysi]);
       break;
     case 1:
       cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]+0x20);
-      /*Encodes character by moving pointers*/
-      if (cipher.sysi+cipher.spacing<=(SYS_len-1)) cipher.sysi += cipher.spacing;
-      else cipher.sysi -= (cipher.spacing+(SYS_len-6));
+      cipher.sysi = (cipher.spacing+cipher.sysi)%SYS_len;
       charDump(cipher.buffer, &cipher.buff_len, toupper(SYS[cipher.sysi]));
       break;
     case 2:

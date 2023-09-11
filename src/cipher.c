@@ -174,61 +174,77 @@ void encrypt(char* text, char* buffer, uint8_t system, uint8_t spacing) {
   }
 }
 
-//spacing range:
-//SYS_0 (0~25) | SYS_1 (0~35) | SYS_2 (0~46)
-//Any spacing out of boundary may lead to issues
-//The buffer allocation space should match text or greater
-//The memory block of buffer will be reset in its initial execution
+/*Decrypts given text to buffer according to system and spacing
+Spacing's ranges are:
+SYS_0 (0~25) | SYS_1 (0~35) | SYS_2 (0~46)
+Any spacing out of boundary may lead to unexpected exceptions*/
 void decrypt(char* text, char* buffer, uint8_t system, uint8_t spacing) {
-  int32_t sysi; 
-  uint32_t txti; /*sysi - SYS index, txti - text index*/
-  const char* ptr;
-  memset(buffer, 0, sizeof(buffer));
+  /*Initialising cipher_t and its variables*/
+  cipher_t cipher;
+  cipher.txti = 0;
+  cipher.sysi = 0;
+  cipher.text = text;
+  cipher.buffer = buffer;
+  cipher.system = system;
+  cipher.spacing = spacing;
+  cipher.buff_len = strlen(buffer);
   switch (system) {
-  case 0:
-    for (txti=0; txti<strlen(text); txti++) {
-      if (islower(text[txti])) ptr = strchr(SYS_0, text[txti]);
-      else ptr = strchr(SYS_0, text[txti]+0x20);
-      if (ptr!=NULL) {
-        sysi = ptr - SYS_0;
-        sysi -= (sysi-spacing>-1) ? spacing : spacing+25;
-        sprintf(buffer+strlen(buffer), "%c", (islower(text[txti])) ? SYS_0[sysi] : SYS_0[sysi]-0x20);
-      } else sprintf(buffer+strlen(buffer), "%c", text[txti]);
-    }
-  break;
-  case 1:
-    for (txti=0; txti<strlen(text); txti++) {
-      if (isalpha(text[txti])) {
-        ptr = strchr(SYS_1, (islower(text[txti])) ? text[txti] : text[txti]+0x20);
-        sysi = ptr - SYS_1;
-        sysi -= (sysi-spacing>-1) ? spacing : spacing+35;
-        if (isalpha(SYS_1[sysi])) sprintf(buffer+strlen(buffer), "%c", (islower(text[txti])) ? SYS_1[sysi] : SYS_1[sysi]-0x20);
-        else sprintf(buffer+strlen(buffer), "%c", SYS_1[sysi]);
-        continue;
-      } else ptr = strchr(SYS_1, text[txti]);
-      if (ptr!=NULL) {
-        sysi = ptr - SYS_1;
-        sysi -= (sysi-spacing>-1) ? spacing : spacing+35;
-        sprintf(buffer+strlen(buffer), "%c", SYS_1[sysi]);
-      } else sprintf(buffer+strlen(buffer), "%c", text[txti]);
-    }
-  break;
-  case 2:
-    for (txti=0; txti<strlen(text); txti++) {
-      if (isalpha(text[txti])) {
-        ptr = strchr(SYS_2, (islower(text[txti])) ? text[txti] : text[txti]+0x20);
-        sysi = ptr - SYS_2;
-        sysi -= (sysi-spacing>-1) ? spacing : spacing+47;
-        if (isalpha(SYS_2[sysi])) sprintf(buffer+strlen(buffer), "%c", (islower(text[txti])) ? SYS_2[sysi] : SYS_2[sysi]-0x20);
-        else sprintf(buffer+strlen(buffer), "%c", SYS_2[sysi]);
-        continue;
-      } else ptr = strchr(SYS_2, text[txti]);
-      if (ptr!=NULL) {
-        sysi = ptr - SYS_2;
-        sysi -= (sysi-spacing>-1) ? spacing : spacing+47;
-        sprintf(buffer+strlen(buffer), "%c", SYS_2[sysi]);
-      } else sprintf(buffer+strlen(buffer), "%c", text[txti]);
-    }
-  break;
+    case 0:
+      for (; cipher.txti<strlen(text); cipher.txti++) {
+        cipher.state = getState(text, cipher.txti);
+        switch (cipher.state) {
+          case LW_CHAR:
+            decode(&cipher, 0, SYS_0, SYS_0_len);
+            break;
+          case UP_CHAR:
+            decode(&cipher, 1, SYS_0, SYS_0_len);
+            break;
+          default:
+            decode(&cipher, 2, SYS_0, SYS_0_len);
+            break;
+        }
+      }
+      break;
+    case 1:
+      for (; cipher.txti<strlen(text); cipher.txti++) {
+        cipher.state = getState(text, cipher.txti);
+        switch (cipher.state) {
+          case LW_CHAR:
+            decode(&cipher, 0, SYS_1, SYS_1_len);
+            break;
+          case UP_CHAR:
+            decode(&cipher, 1, SYS_1, SYS_1_len);
+            break;
+          case INT_CHAR:
+            decode(&cipher, 0, SYS_1, SYS_1_len);
+            break;
+          default:
+            decode(&cipher, 2, SYS_1, SYS_1_len);
+            break;
+        }
+      }
+      break;
+    case 2:
+      for (; cipher.txti<strlen(text); cipher.txti++) {
+        cipher.state = getState(text, cipher.txti);
+        switch (cipher.state) {
+          case LW_CHAR:
+            decode(&cipher, 0, SYS_2, SYS_2_len);
+            break;
+          case UP_CHAR:
+            decode(&cipher, 1, SYS_2, SYS_2_len);
+            break;
+          case INT_CHAR:
+            decode(&cipher, 0, SYS_2, SYS_2_len);
+            break;
+          case SS_CHAR:
+            decode(&cipher, 0, SYS_2, SYS_2_len);
+            break;
+          default:
+            decode(&cipher, 2, SYS_2, SYS_2_len);
+            break;
+        }
+      }
+      break;
   }
 }

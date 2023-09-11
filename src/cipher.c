@@ -67,6 +67,38 @@ static void encode(cipher_t* cipher_ptr, uint8_t _case, const char* SYS, const u
   } *(cipher_ptr) = cipher;
 }
 
+/*Decodes a character according to the given case
+All cases:
+  0 = encode (normal),
+  1 = encode (uppercase),
+  2 = ignore*/
+static void decode(cipher_t* cipher_ptr, uint8_t _case, const char* SYS, const uint8_t SYS_len) {
+  int32_t decoded_pos;
+  cipher_t cipher = *(cipher_ptr);
+  switch (_case) {
+    case 0:
+      cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]);
+      /*Decodes character by calculating positions through spacing*/
+      decoded_pos = cipher.sysi-cipher.spacing;
+      if (decoded_pos<0) cipher.sysi = SYS_len+decoded_pos;
+      else cipher.sysi = decoded_pos%SYS_len;
+      charDump(cipher.buffer, &cipher.buff_len, SYS[cipher.sysi]);
+      break;
+    case 1:
+      cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]+0x20);
+      /*Decodes character by calculating positions through spacing*/
+      decoded_pos = cipher.sysi-cipher.spacing;
+      if (decoded_pos<0) cipher.sysi = SYS_len+decoded_pos;
+      else cipher.sysi = decoded_pos%SYS_len;
+      charDump(cipher.buffer, &cipher.buff_len, toupper(SYS[cipher.sysi]));
+      break;
+    case 2:
+      cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]);
+      charDump(cipher.buffer, &cipher.buff_len, cipher.text[cipher.txti]);
+      break;
+  } *(cipher_ptr) = cipher;
+}
+
 /*Encrypts given text to buffer according to system and spacing
 Spacing's ranges are:
 SYS_0 (0~25) | SYS_1 (0~35) | SYS_2 (0~46)

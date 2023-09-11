@@ -52,12 +52,14 @@ static void encode(cipher_t* cipher_ptr, uint8_t _case, const char* SYS, const u
   switch (_case) {
     case 0:
       cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]);
-      cipher.sysi = (cipher.spacing+cipher.sysi)%SYS_len;
+      /*Encodes character by moving pointers*/
+      cipher.sysi = (cipher.steps+cipher.sysi)%SYS_len;
       charDump(cipher.buffer, &cipher.buff_len, SYS[cipher.sysi]);
       break;
     case 1:
       cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]+0x20);
-      cipher.sysi = (cipher.spacing+cipher.sysi)%SYS_len;
+      /*Encodes character by moving pointers*/
+      cipher.sysi = (cipher.steps+cipher.sysi)%SYS_len;
       charDump(cipher.buffer, &cipher.buff_len, toupper(SYS[cipher.sysi]));
       break;
     case 2:
@@ -78,16 +80,16 @@ static void decode(cipher_t* cipher_ptr, uint8_t _case, const char* SYS, const u
   switch (_case) {
     case 0:
       cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]);
-      /*Decodes character by calculating positions through spacing*/
-      decoded_pos = cipher.sysi-cipher.spacing;
+      /*Decodes character by calculating positions through steps*/
+      decoded_pos = cipher.sysi-cipher.steps;
       if (decoded_pos<0) cipher.sysi = SYS_len+decoded_pos;
       else cipher.sysi = decoded_pos%SYS_len;
       charDump(cipher.buffer, &cipher.buff_len, SYS[cipher.sysi]);
       break;
     case 1:
       cipher.sysi = getSYSIndex(SYS, cipher.text[cipher.txti]+0x20);
-      /*Decodes character by calculating positions through spacing*/
-      decoded_pos = cipher.sysi-cipher.spacing;
+      /*Decodes character by calculating positions through steps*/
+      decoded_pos = cipher.sysi-cipher.steps;
       if (decoded_pos<0) cipher.sysi = SYS_len+decoded_pos;
       else cipher.sysi = decoded_pos%SYS_len;
       charDump(cipher.buffer, &cipher.buff_len, toupper(SYS[cipher.sysi]));
@@ -99,11 +101,11 @@ static void decode(cipher_t* cipher_ptr, uint8_t _case, const char* SYS, const u
   } *(cipher_ptr) = cipher;
 }
 
-/*Encrypts given text to buffer according to system and spacing
-Spacing's ranges are:
-SYS_0 (0~25) | SYS_1 (0~35) | SYS_2 (0~46)
-Any spacing out of boundary may lead to unexpected exceptions*/
-void encrypt(char* text, char* buffer, uint8_t system, uint8_t spacing) {
+/*Encrypts given text to buffer according to system and steps
+Steps' ranges are:
+SYS_0 (0~26) | SYS_1 (0~36) | SYS_2 (0~47)
+Any steps out of boundary will lead to unexpected exceptions*/
+void encrypt(char* text, char* buffer, uint8_t system, uint8_t steps) {
   /*Initialising cipher_t and its variables*/
   cipher_t cipher;
   cipher.txti = 0;
@@ -111,7 +113,7 @@ void encrypt(char* text, char* buffer, uint8_t system, uint8_t spacing) {
   cipher.text = text;
   cipher.buffer = buffer;
   cipher.system = system;
-  cipher.spacing = spacing;
+  cipher.steps = steps;
   cipher.buff_len = strlen(buffer);
   switch (system) {
     case 0:
@@ -174,11 +176,11 @@ void encrypt(char* text, char* buffer, uint8_t system, uint8_t spacing) {
   }
 }
 
-/*Decrypts given text to buffer according to system and spacing
-Spacing's ranges are:
-SYS_0 (0~25) | SYS_1 (0~35) | SYS_2 (0~46)
-Any spacing out of boundary may lead to unexpected exceptions*/
-void decrypt(char* text, char* buffer, uint8_t system, uint8_t spacing) {
+/*Decrypts given text to buffer according to system and steps
+Steps' ranges are:
+SYS_0 (0~26) | SYS_1 (0~36) | SYS_2 (0~47)
+Any steps out of boundary will lead to unexpected exceptions*/
+void decrypt(char* text, char* buffer, uint8_t system, uint8_t steps) {
   /*Initialising cipher_t and its variables*/
   cipher_t cipher;
   cipher.txti = 0;
@@ -186,7 +188,7 @@ void decrypt(char* text, char* buffer, uint8_t system, uint8_t spacing) {
   cipher.text = text;
   cipher.buffer = buffer;
   cipher.system = system;
-  cipher.spacing = spacing;
+  cipher.steps = steps;
   cipher.buff_len = strlen(buffer);
   switch (system) {
     case 0:

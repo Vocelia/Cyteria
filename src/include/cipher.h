@@ -20,8 +20,8 @@ typedef struct {
 	uint32_t sysi; /*sysi - SYS index*/
 	uint32_t txti; /*txti - text index*/
 	uint8_t system;
-	uint8_t spacing;
+	uint8_t steps;
 } cipher_t;
 
-void encrypt(char* text, char* buffer, uint8_t system, uint8_t spacing);
-void decrypt(char* text, char* buffer, uint8_t system, uint8_t spacing);
+void encrypt(char* text, char* buffer, uint8_t system, uint8_t steps);
+void decrypt(char* text, char* buffer, uint8_t system, uint8_t steps);

@@ -4,6 +4,12 @@
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkTextBuffer" id="decode_buffer"/>
   <object class="GtkTextBuffer" id="encode_buffer"/>
+  <object class="GtkAdjustment" id="steps_adjustment">
+    <property name="upper">26</property>
+    <property name="value">3</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
   <object class="GtkWindow" id="main_window">
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">Cyteria</property>
@@ -23,6 +29,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="halign">center</property>
+            <property name="homogeneous">True</property>
             <property name="stack">stack</property>
           </object>
           <packing>
@@ -37,7 +44,7 @@
             <property name="can-focus">False</property>
             <property name="transition-type">slide-left-right</property>
             <child>
-              <!-- n-columns=2 n-rows=2 -->
+              <!-- n-columns=2 n-rows=3 -->
               <object class="GtkGrid" id="cipher_body">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -49,6 +56,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="halign">end</property>
+                    <property name="spacing">5</property>
                     <child>
                       <object class="GtkBox">
                         <property name="visible">True</property>
@@ -111,8 +119,11 @@
                           <object class="GtkSpinButton">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
+                            <property name="adjustment">steps_adjustment</property>
                             <property name="climb-rate">1</property>
                             <property name="numeric">True</property>
+                            <property name="wrap">True</property>
+                            <property name="value">3</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -150,8 +161,8 @@
                   <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
-                    <property name="margin-bottom">46</property>
                     <property name="shadow-type">in</property>
+                    <property name="min-content-height">200</property>
                     <property name="propagate-natural-width">True</property>
                     <property name="propagate-natural-height">True</property>
                     <child>
@@ -159,6 +170,7 @@
                         <property name="height-request">200</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
+                        <property name="vexpand">True</property>
                         <property name="buffer">encode_buffer</property>
                       </object>
                     </child>
@@ -173,6 +185,7 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="shadow-type">in</property>
+                    <property name="min-content-height">200</property>
                     <property name="propagate-natural-width">True</property>
                     <property name="propagate-natural-height">True</property>
                     <child>
@@ -180,6 +193,7 @@
                         <property name="height-request">200</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
+                        <property name="vexpand">True</property>
                         <property name="buffer">decode_buffer</property>
                       </object>
                     </child>
@@ -189,99 +203,97 @@
                     <property name="top-attach">1</property>
                   </packing>
                 </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="spacing">5</property>
+                    <child>
+                      <object class="GtkSpinner">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="single-line-mode">True</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButtonBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">end</property>
+                    <property name="layout-style">start</property>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">2</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="name">cipher</property>
-                <property name="title" translatable="yes">Cipher</property>
+                <property name="title" translatable="yes">   Cipher   </property>
               </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkBox" id="footer">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <child>
-              <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <child>
-                  <object class="GtkSpinner">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="single-line-mode">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButtonBox">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="layout-style">start</property>
-                <child>
-                  <object class="GtkButton">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="receives-default">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="receives-default">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="pack-type">end</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
           </packing>
         </child>
       </object>

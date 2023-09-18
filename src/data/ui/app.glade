@@ -6,18 +6,20 @@
   <object class="GtkTextBuffer" id="encode_buffer"/>
   <object class="GtkWindow" id="main_window">
     <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Cyteria</property>
+    <property name="icon-name">cyteria</property>
     <child>
-      <object class="GtkBox">
+      <object class="GtkBox" id="main_interface">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="margin-left">3</property>
-        <property name="margin-right">3</property>
-        <property name="margin-top">3</property>
-        <property name="margin-bottom">3</property>
+        <property name="margin-left">8</property>
+        <property name="margin-right">8</property>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
         <property name="orientation">vertical</property>
         <property name="spacing">4</property>
         <child>
-          <object class="GtkStackSwitcher">
+          <object class="GtkStackSwitcher" id="header">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="halign">center</property>
@@ -33,17 +35,20 @@
           <object class="GtkStack" id="stack">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="transition-type">slide-left-right</property>
             <child>
               <!-- n-columns=2 n-rows=2 -->
-              <object class="GtkGrid">
+              <object class="GtkGrid" id="cipher_body">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="row-spacing">3</property>
+                <property name="column-spacing">8</property>
                 <property name="column-homogeneous">True</property>
                 <child>
                   <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="halign">end</property>
                     <child>
                       <object class="GtkBox">
                         <property name="visible">True</property>
@@ -129,9 +134,10 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel">
+                  <object class="GtkLabel" id="status_cipher">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="halign">start</property>
                     <property name="label" translatable="yes">Encryption — Decryption</property>
                     <property name="xalign">0.029999999329447746</property>
                   </object>
@@ -144,9 +150,13 @@
                   <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
+                    <property name="margin-bottom">46</property>
                     <property name="shadow-type">in</property>
+                    <property name="propagate-natural-width">True</property>
+                    <property name="propagate-natural-height">True</property>
                     <child>
                       <object class="GtkTextView">
+                        <property name="height-request">200</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="buffer">encode_buffer</property>
@@ -163,8 +173,11 @@
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="shadow-type">in</property>
+                    <property name="propagate-natural-width">True</property>
+                    <property name="propagate-natural-height">True</property>
                     <child>
                       <object class="GtkTextView">
+                        <property name="height-request">200</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="buffer">decode_buffer</property>
@@ -190,13 +203,36 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="footer">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkLabel" id="status_label">
+              <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkSpinner">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="single-line-mode">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -205,9 +241,34 @@
               </packing>
             </child>
             <child>
-              <object class="GtkSpinner" id="status_spinner">
+              <object class="GtkButtonBox">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="layout-style">start</property>
+                <child>
+                  <object class="GtkButton">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
